@@ -1,0 +1,40 @@
+@font-face { font-family: 'Archivo'; src: local('Archivo'); }
+:root {
+  --ink: #201e1d;
+  --cream: #f3f2f2;
+  --cream-2: #eae9e9;
+  --red: #ec3013;
+  --red-deep: #ae1800;
+  --rule-light: #d7d3d3;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Archivo, Helvetica, Arial, sans-serif;
+  background: var(--cream-2);
+  color: var(--ink);
+}
+h1, h2, h3 { font-weight: 800; margin: 0; letter-spacing: -0.02em; }
+.kicker { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(32,30,29,0.55); }
+.btn {
+  display: inline-block; border: 2px solid var(--ink); background: transparent;
+  color: var(--ink); font-family: inherit; font-size: 13px; font-weight: 800;
+  letter-spacing: 0.06em; text-transform: uppercase; padding: 10px 16px; cursor: pointer;
+}
+.btn-primary { background: var(--red); border-color: var(--red); color: var(--cream); }
+.group-block { border-bottom: 2px solid var(--ink); padding: 12px 0; }
+.shot-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(32,30,29,0.25); font-size: 14px; font-weight: 600; }
+.shot-row.goal { color: var(--red-deep); font-weight: 800; }
+
+html, body { height: 100%; }
+#root { display: flex; flex-direction: column; min-height: 100vh; max-width: 480px; margin: 0 auto; background: var(--cream); border-left: 2px solid var(--ink); border-right: 2px solid var(--ink); }
+.page { flex: 1; padding: 24px 20px 90px; }
+.tabbar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; height: 60px; display: grid; grid-template-columns: repeat(3,1fr); border-top: 2px solid var(--ink); background: var(--cream); }
+.tab { display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; color: rgba(32,30,29,.5); border-right: 1px solid rgba(32,30,29,.25); }
+.tab:last-child { border-right: none; }
+.tab.active { color: var(--red); }
+.red-band { background: var(--red); color: var(--cream); margin: 0 -20px 18px; padding: 16px 20px 18px; }
+.rate-sq { flex: 1; min-width: 26px; height: 26px; border: 2px solid var(--ink); cursor: pointer; }
+.rate-sq.on { background: var(--red); border-color: var(--red); }
+.red-band .rate-sq { border-color: rgba(243,242,242,.6); }
+.red-band .rate-sq.on { background: var(--cream); border-color: var(--cream); }
