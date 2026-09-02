@@ -1,5 +1,5 @@
 // Minimal offline cache for the Pickle app shell — no build step, no dependencies.
-const CACHE = 'pickle-v4';
+const CACHE = 'pickle-v5';
 const ASSETS = [
   './',
   './index.html',

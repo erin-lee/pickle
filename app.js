@@ -1,6 +1,5 @@
 // ── Data layer ────────────────────────────────────────────────
 const STORAGE_KEY = 'pickle-state-v2';
-const MASTERY_TARGET = 20;
 
 const SEED_GROUPS = [
   { id: 'kitchen', name: 'Kitchen' },
@@ -185,7 +184,10 @@ function infoDot(light) {
 function renderLog() {
   const goalShots = state.shots.filter(s => s.isGoal);
   const otherGroups = state.groups;
+  const todayISO = new Date().toISOString().slice(0, 10);
   const today = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  const sessionsToday = state.sessions.filter(s => s.date === todayISO).length;
+  const sessionLabel = sessionsToday === 0 ? 'Open play' : `Session ${sessionsToday + 1} today · Open play`;
 
   const usedCount = goalShots.filter(s => logFlow[s.id] && logFlow[s.id].used).length;
   const statusLabel = goalShots.length === 0 ? '' : (usedCount === 0 ? 'Not logged' : (usedCount === goalShots.length ? 'Logged' : `${usedCount}/${goalShots.length} logged`));
@@ -197,7 +199,7 @@ function renderLog() {
     </div>
     <div style="display:flex;flex-direction:column;gap:14px;margin-top:12px;">
       ${goalShots.map((s, i) => {
-        const sessions = entriesForShot(state, s.id).length;
+        const timesLogged = entriesForShot(state, s.id).length;
         const used = !!(logFlow[s.id] && logFlow[s.id].used);
         return `<div data-action="nav-flow" data-shot="${s.id}" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid rgba(243,242,242,.35);opacity:${used || i === 0 ? 1 : 0.55};cursor:pointer;">
           <div>
@@ -205,7 +207,7 @@ function renderLog() {
               <span style="font-size:20px;font-weight:800;">${s.name}</span>
               ${infoDot(true)}
             </div>
-            <div class="kicker" style="color:rgba(243,242,242,.75);margin-top:4px;">${sessions} of ${MASTERY_TARGET} sessions</div>
+            <div class="kicker" style="color:rgba(243,242,242,.75);margin-top:4px;">${timesLogged === 0 ? 'Not logged yet' : `Logged ${timesLogged} time${timesLogged === 1 ? '' : 's'}`}</div>
           </div>
           <div style="width:26px;height:26px;border:2px solid var(--cream);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             ${used ? '<span style="color:var(--cream);font-weight:800;font-size:16px;">✓</span>' : ''}
@@ -250,7 +252,7 @@ function renderLog() {
   const hasProgress = Object.values(logFlow).some(e => e.used || e.feel);
 
   return shell('log', `
-    <div class="kicker">Session ${state.sessions.length + 1} · Open play</div>
+    <div class="kicker">${sessionLabel}</div>
     <h1 style="font-size:30px;margin:6px 0 18px;">${today}</h1>
     ${goalBand}
     ${hasRest ? `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:22px 0 10px;">
@@ -274,7 +276,8 @@ function renderLogFlow(shotId) {
   const shot = goalShots[goalIdx];
   if (!shot) { location.hash = '#/log'; return ''; }
   const entry = logFlow[shot.id] || {};
-  const sessionNum = state.sessions.length + 1;
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const sessionNum = state.sessions.filter(s => s.date === todayISO).length + 1;
   const isLast = goalIdx === goalShots.length - 1;
   const nextLabel = isLast ? 'Finish' : 'Next · ' + goalShots[goalIdx + 1].name;
   const tags = entry.tags || [];
@@ -348,7 +351,7 @@ function renderProgress() {
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border:2px solid var(--ink);border-bottom:none;margin-bottom:18px;">
       <div style="padding:12px;border-right:1px solid rgba(32,30,29,.25);"><div class="kicker">Sessions</div><div style="font-size:28px;font-weight:800;">${stats.sessions}</div></div>
       <div style="padding:12px;border-right:1px solid rgba(32,30,29,.25);"><div class="kicker">Avg rating</div><div style="font-size:28px;font-weight:800;">${stats.avg ?? '—'}</div></div>
-      <div style="padding:12px;"><div class="kicker">Goal hits</div><div style="font-size:28px;font-weight:800;color:var(--red);">${stats.goalHits}<span style="font-size:14px;color:rgba(32,30,29,.5);">/${stats.goalPossible}</span></div></div>
+      <div style="padding:12px;"><div class="kicker">Solid+ ratings</div><div style="font-size:28px;font-weight:800;color:var(--red);">${stats.goalHits}<span style="font-size:14px;color:rgba(32,30,29,.5);">/${stats.goalPossible}</span></div></div>
     </div>
     <div class="kicker" style="margin-bottom:10px;">Rating trend</div>
     ${chart}
