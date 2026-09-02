@@ -54,6 +54,12 @@ function loadState() {
 function saveState(state) { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function resetState() { const s = seedState(); saveState(s); return s; }
 
+const FLOW_STORAGE_KEY = 'pickle-flow-v1';
+function loadLogFlow() {
+  try { return JSON.parse(localStorage.getItem(FLOW_STORAGE_KEY)) || {}; } catch (e) { return {}; }
+}
+function persistLogFlow() { localStorage.setItem(FLOW_STORAGE_KEY, JSON.stringify(logFlow)); }
+
 function addShot(state, groupId, name, description) {
   const id = 'shot_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
   state.shots.push({ id, groupId, name, description: description || '', isGoal: false });
@@ -112,7 +118,7 @@ function sessionAverages(state) {
 // ── App state / router ───────────────────────────────────────
 let state = loadState();
 let pendingSwap = null; // shotId awaiting a swap target
-let logFlow = {};     // shotId -> { used, feel, note, tags }
+let logFlow = loadLogFlow(); // shotId -> { used, feel, note, tags } — persisted so a reload can't silently wipe tonight's progress
 let skillDrawer = null; // { mode: 'view'|'edit'|'add', shotId, groupId }
 let expandedNoteShot = null; // shotId whose inline note editor is open on the Log page
 
@@ -268,9 +274,6 @@ function renderLogFlow(shotId) {
   const shot = goalShots[goalIdx];
   if (!shot) { location.hash = '#/log'; return ''; }
   const entry = logFlow[shot.id] || {};
-  const entries = entriesForShot(state, shot.id);
-  const made = entries.reduce((a, e) => a + (e.made || 0), 0);
-  const missed = entries.reduce((a, e) => a + (e.missed || 0), 0);
   const sessionNum = state.sessions.length + 1;
   const isLast = goalIdx === goalShots.length - 1;
   const nextLabel = isLast ? 'Finish' : 'Next · ' + goalShots[goalIdx + 1].name;
@@ -292,10 +295,6 @@ function renderLogFlow(shotId) {
         <div class="kicker" style="margin-bottom:10px;">How did it feel?</div>
         <div style="display:flex;gap:6px;margin-bottom:20px;">
           ${[1, 2, 3, 4, 5].map(n => `<div data-action="flow-feel" data-shot="${shot.id}" data-n="${n}" style="flex:1;height:44px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;background:${entry.feel === n ? 'var(--ink)' : 'transparent'};color:${entry.feel === n ? 'var(--cream)' : 'var(--ink)'};">${n}</div>`).join('')}
-        </div>
-        <div style="display:flex;border:2px solid var(--ink);margin-bottom:20px;">
-          <div style="flex:1;padding:14px;border-right:1px solid rgba(32,30,29,.25);"><div class="kicker">Made</div><div style="font-size:32px;font-weight:800;">${made}</div></div>
-          <div style="flex:1;padding:14px;"><div class="kicker">Missed</div><div style="font-size:32px;font-weight:800;">${missed}</div></div>
         </div>
         <div class="kicker" style="margin-bottom:8px;">Note</div>
         <textarea class="flow-note-input" data-shot="${shot.id}" placeholder="What clicked / what didn't?" style="width:100%;min-height:70px;font-family:inherit;font-size:14px;border:2px solid var(--ink);padding:10px;background:var(--cream);margin-bottom:14px;">${entry.note || ''}</textarea>
@@ -364,9 +363,6 @@ function renderSkill(shotId) {
   if (!s) return shell('progress', `<div class="kicker">Skill not found.</div>`);
   const entries = entriesForShot(state, shotId);
   const rating = avgRating(entries);
-  const made = entries.reduce((a, e) => a + (e.made || 0), 0);
-  const missed = entries.reduce((a, e) => a + (e.missed || 0), 0);
-  const pct = made + missed ? Math.round(made / (made + missed) * 100) : null;
 
   let history = `<div style="height:110px;display:flex;align-items:flex-end;gap:5px;border-bottom:2px solid var(--ink);">
     ${entries.map((e, i) => `<div style="flex:1;height:${e.rating / 5 * 100}%;background:${i >= entries.length - 2 ? 'var(--red)' : 'var(--rule-light)'};"></div>`).join('') || '<div class="kicker" style="padding-bottom:10px;">No sessions logged yet.</div>'}
@@ -388,15 +384,6 @@ function renderSkill(shotId) {
     </div>
     <div class="kicker" style="margin-bottom:10px;">Rating by session</div>
     ${history}
-    <div class="kicker" style="margin:20px 0 8px;">Drill reps · all time</div>
-    ${pct != null ? `
-      <div style="display:flex;height:24px;border:2px solid var(--ink);">
-        <div style="width:${pct}%;background:var(--red);"></div>
-        <div style="width:${100 - pct}%;background:var(--cream-2);"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px;font-weight:800;">
-        <span>${made} MADE</span><span style="color:rgba(32,30,29,.55);">${missed} MISSED · ${pct}%</span>
-      </div>` : `<div class="kicker">No reps logged.</div>`}
     <div class="kicker" style="margin:20px 0 8px;">Notes</div>
     ${notes}
   `);
@@ -639,6 +626,7 @@ document.addEventListener('click', (e) => {
       route();
     }
   }
+  persistLogFlow();
 });
 document.addEventListener('input', (e) => {
   if (e.target.classList.contains('flow-note-input')) {
@@ -646,6 +634,7 @@ document.addEventListener('input', (e) => {
     const entry = logFlow[shotId] || {};
     entry.note = e.target.value;
     logFlow[shotId] = entry;
+    persistLogFlow();
   }
 });
 
