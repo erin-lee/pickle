@@ -34,7 +34,3 @@ html, body { height: 100%; }
 .tab:last-child { border-right: none; }
 .tab.active { color: var(--red); }
 .red-band { background: var(--red); color: var(--cream); margin: 0 -20px 18px; padding: 16px 20px 18px; }
-.rate-sq { flex: 1; min-width: 26px; height: 26px; border: 2px solid var(--ink); cursor: pointer; }
-.rate-sq.on { background: var(--red); border-color: var(--red); }
-.red-band .rate-sq { border-color: rgba(243,242,242,.6); }
-.red-band .rate-sq.on { background: var(--cream); border-color: var(--cream); }

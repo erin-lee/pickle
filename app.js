@@ -1,5 +1,6 @@
 // ── Data layer ────────────────────────────────────────────────
-const STORAGE_KEY = 'pickle-state-v1';
+const STORAGE_KEY = 'pickle-state-v2';
+const MASTERY_TARGET = 20;
 
 const SEED_GROUPS = [
   { id: 'kitchen', name: 'Kitchen' },
@@ -13,34 +14,34 @@ const SEED_GROUPS = [
 ];
 
 const SEED_SHOTS = [
-  { id: 'k1', groupId: 'kitchen', name: 'Cross-court dink', isGoal: false },
-  { id: 'k2', groupId: 'kitchen', name: 'Speed-up dink', isGoal: false },
-  { id: 'k3', groupId: 'kitchen', name: 'Dead dink / reset', isGoal: false },
-  { id: 'k4', groupId: 'kitchen', name: 'Dink volley (out of air)', isGoal: false },
-  { id: 't1', groupId: 'transition', name: 'Third shot drop', isGoal: true },
-  { id: 't2', groupId: 'transition', name: 'Third shot drive', isGoal: false },
-  { id: 't3', groupId: 'transition', name: 'Reset off a drive', isGoal: false },
-  { id: 'sp1', groupId: 'specials', name: 'Offensive lob', isGoal: false },
-  { id: 'sp2', groupId: 'specials', name: 'Erne', isGoal: false },
-  { id: 'sp3', groupId: 'specials', name: 'ATP', isGoal: false },
-  { id: 'sv1', groupId: 'serve', name: 'Deep serve', isGoal: false },
-  { id: 'sv2', groupId: 'serve', name: 'Spin serve', isGoal: false },
-  { id: 'sv3', groupId: 'serve', name: 'Body serve', isGoal: false },
-  { id: 'sv4', groupId: 'serve', name: 'Short serve', isGoal: false },
-  { id: 'r1', groupId: 'return', name: 'Deep return', isGoal: true },
-  { id: 'r2', groupId: 'return', name: 'Short angle return', isGoal: false },
-  { id: 'r3', groupId: 'return', name: 'Lob return', isGoal: false },
-  { id: 'r4', groupId: 'return', name: 'Drive return', isGoal: false },
-  { id: 'd1', groupId: 'drive', name: 'Forehand drive', isGoal: false },
-  { id: 'd2', groupId: 'drive', name: 'Backhand drive', isGoal: false },
-  { id: 'd3', groupId: 'drive', name: 'Two-handed backhand drive', isGoal: false },
-  { id: 'v1', groupId: 'volleys', name: 'Punch volley', isGoal: false },
-  { id: 'v2', groupId: 'volleys', name: 'Roll volley', isGoal: true },
-  { id: 'v3', groupId: 'volleys', name: 'Reset volley', isGoal: false },
-  { id: 'v4', groupId: 'volleys', name: 'Block volley', isGoal: false },
-  { id: 'f1', groupId: 'footwork', name: 'Split-step timing', isGoal: false },
-  { id: 'f2', groupId: 'footwork', name: 'Court recovery', isGoal: false },
-  { id: 'f3', groupId: 'footwork', name: 'Ready position', isGoal: false },
+  { id: 'k1', groupId: 'kitchen', name: 'Cross-court dink', isGoal: false, description: "Soft, low shot hit diagonally into the opponent's kitchen to extend rallies and open angles." },
+  { id: 'k2', groupId: 'kitchen', name: 'Speed-up dink', isGoal: false, description: 'An aggressive, faster dink meant to catch your opponent off guard and force a weak reply.' },
+  { id: 'k3', groupId: 'kitchen', name: 'Dead dink / reset', isGoal: false, description: 'A soft, controlled shot that kills pace on a fast ball, resetting the point to neutral.' },
+  { id: 'k4', groupId: 'kitchen', name: 'Dink volley (out of air)', isGoal: false, description: 'Dinking the ball before it bounces, taken clean out of the air at the kitchen line.' },
+  { id: 't1', groupId: 'transition', name: 'Third shot drop', isGoal: true, description: 'The soft arcing shot after the serve/return that lands in the kitchen, letting you advance to the net.' },
+  { id: 't2', groupId: 'transition', name: 'Third shot drive', isGoal: false, description: 'A firm, flat third shot driven low past the opposing team instead of dropping it.' },
+  { id: 't3', groupId: 'transition', name: 'Reset off a drive', isGoal: false, description: 'Absorbing pace off an incoming drive and softly dropping it back into the kitchen.' },
+  { id: 'sp1', groupId: 'specials', name: 'Offensive lob', isGoal: false, description: "A deep, arcing shot over the opponents' heads when they're crowding the net." },
+  { id: 'sp2', groupId: 'specials', name: 'Erne', isGoal: false, description: 'Stepping around the kitchen (without touching it) to volley a wide ball out of the air.' },
+  { id: 'sp3', groupId: 'specials', name: 'ATP', isGoal: false, description: 'Hitting the ball around the net post, outside the court boundary, to win the point.' },
+  { id: 'sv1', groupId: 'serve', name: 'Deep serve', isGoal: false, description: 'A serve hit deep into the service box to push the returner back and limit their options.' },
+  { id: 'sv2', groupId: 'serve', name: 'Spin serve', isGoal: false, description: 'A serve with added spin to make the bounce less predictable for the returner.' },
+  { id: 'sv3', groupId: 'serve', name: 'Body serve', isGoal: false, description: "A serve aimed at the returner's body to jam their swing." },
+  { id: 'sv4', groupId: 'serve', name: 'Short serve', isGoal: false, description: 'A serve that lands just past the kitchen line, pulling the returner forward.' },
+  { id: 'r1', groupId: 'return', name: 'Deep return', isGoal: true, description: 'Returning serve deep in the court to prevent the serving team from advancing easily.' },
+  { id: 'r2', groupId: 'return', name: 'Short angle return', isGoal: false, description: 'A sharply angled return that pulls the server wide off the court.' },
+  { id: 'r3', groupId: 'return', name: 'Lob return', isGoal: false, description: 'A high, deep return used to buy time to get to the net.' },
+  { id: 'r4', groupId: 'return', name: 'Drive return', isGoal: false, description: 'A hard, flat return aimed low to rush the serving team.' },
+  { id: 'd1', groupId: 'drive', name: 'Forehand drive', isGoal: false, description: 'A firm, flat groundstroke hit with the forehand to apply pressure.' },
+  { id: 'd2', groupId: 'drive', name: 'Backhand drive', isGoal: false, description: 'A firm, flat groundstroke hit with the backhand.' },
+  { id: 'd3', groupId: 'drive', name: 'Two-handed backhand drive', isGoal: false, description: 'A backhand drive hit with both hands for extra power and control.' },
+  { id: 'v1', groupId: 'volleys', name: 'Punch volley', isGoal: false, description: 'A short, compact volley hit with a punching motion rather than a swing.' },
+  { id: 'v2', groupId: 'volleys', name: 'Roll volley', isGoal: true, description: 'A volley hit with topspin by rolling the paddle face over the ball.' },
+  { id: 'v3', groupId: 'volleys', name: 'Reset volley', isGoal: false, description: 'A soft volley meant to kill pace and drop the ball into the kitchen.' },
+  { id: 'v4', groupId: 'volleys', name: 'Block volley', isGoal: false, description: 'A firm, compact volley used to redirect a hard-hit ball back with minimal swing.' },
+  { id: 'f1', groupId: 'footwork', name: 'Split-step timing', isGoal: false, description: 'Timing a small hop as your opponent contacts the ball to stay ready to move any direction.' },
+  { id: 'f2', groupId: 'footwork', name: 'Court recovery', isGoal: false, description: 'Moving quickly back to the ready position/center of the court after hitting a shot.' },
+  { id: 'f3', groupId: 'footwork', name: 'Ready position', isGoal: false, description: 'The balanced, paddle-up stance used between shots to react quickly.' },
 ];
 
 function seedState() { return { groups: SEED_GROUPS, shots: SEED_SHOTS, sessions: [] }; }
@@ -52,6 +53,22 @@ function loadState() {
 }
 function saveState(state) { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function resetState() { const s = seedState(); saveState(s); return s; }
+
+function addShot(state, groupId, name, description) {
+  const id = 'shot_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+  state.shots.push({ id, groupId, name, description: description || '', isGoal: false });
+  saveState(state);
+  return id;
+}
+function updateShot(state, shotId, patch) {
+  const s = state.shots.find(sh => sh.id === shotId);
+  if (s) Object.assign(s, patch);
+  saveState(state);
+}
+function deleteShot(state, shotId) {
+  state.shots = state.shots.filter(sh => sh.id !== shotId);
+  saveState(state);
+}
 
 function addSession(state, entries, note) {
   const sessionId = 'sess_' + Date.now();
@@ -94,9 +111,10 @@ function sessionAverages(state) {
 
 // ── App state / router ───────────────────────────────────────
 let state = loadState();
-let logForm = {};     // shotId -> rating
-let logNote = '';
 let pendingSwap = null; // shotId awaiting a swap target
+let logFlow = {};     // shotId -> { used, feel, note, tags }
+let skillDrawer = null; // { mode: 'view'|'edit'|'add', shotId, groupId }
+let expandedNoteShot = null; // shotId whose inline note editor is open on the Log page
 
 function route() {
   const hash = location.hash || '#/log';
@@ -124,17 +142,37 @@ function render(view, param) {
   if (view === 'skill') html = renderSkill(param);
   else if (view === 'progress') html = renderProgress();
   else if (view === 'goals') html = renderGoals();
+  else if (view === 'log-flow') html = renderLogFlow(param);
   else html = renderLog();
+  if (skillDrawer && (view === 'log' || view === 'goals')) html += renderSkillDrawer();
   document.getElementById('root').innerHTML = html;
 }
 
-function ratingSquares(shotId, current) {
+const RATE_LABELS = [[1, 'Off'], [2, 'Shaky'], [3, 'Okay'], [4, 'Solid'], [5, 'Dialed in']];
+
+function rateLegend() {
+  return `<div style="font-size:11px;font-weight:800;letter-spacing:.06em;color:rgba(32,30,29,.5);text-transform:uppercase;">${RATE_LABELS.map(([n, l]) => `${n} ${l}`).join(' · ')}</div>`;
+}
+
+function feelSquares(shotId, feel, active) {
   let out = '<div style="display:flex;gap:5px;">';
   for (let n = 1; n <= 5; n++) {
-    out += `<div class="rate-sq ${n <= current ? 'on' : ''}" data-action="rate" data-shot="${shotId}" data-n="${n}"></div>`;
+    const on = active && (feel || 0) >= n;
+    const clickAttrs = active ? `data-action="inline-feel" data-shot="${shotId}" data-n="${n}"` : '';
+    out += `<div ${clickAttrs} style="flex:1;min-width:20px;height:20px;border:2px solid ${active ? 'var(--ink)' : 'rgba(32,30,29,.25)'};background:${on ? 'var(--red)' : 'transparent'};${active ? 'cursor:pointer;' : ''}"></div>`;
   }
   out += '</div>';
   return out;
+}
+
+function skillCheckbox(checked) {
+  return `<div style="width:24px;height:24px;border:2px solid ${checked ? 'var(--ink)' : 'rgba(32,30,29,.3)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${checked ? 'var(--ink)' : 'transparent'};">
+    ${checked ? '<span style="color:var(--cream);font-weight:800;font-size:14px;">✓</span>' : ''}
+  </div>`;
+}
+
+function infoDot(light) {
+  return `<span class="info-dot" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid ${light ? 'rgba(243,242,242,.7)' : 'rgba(32,30,29,.4)'};color:${light ? 'rgba(243,242,242,.9)' : 'rgba(32,30,29,.55)'};font-size:11px;font-weight:800;flex-shrink:0;">i</span>`;
 }
 
 // ── LOG ────────────────────────────────────────────────────────
@@ -143,44 +181,145 @@ function renderLog() {
   const otherGroups = state.groups;
   const today = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 
-  let goalBand = `<div class="red-band">
-    <div class="kicker" style="color:rgba(243,242,242,.8);">Mastering now</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
-      ${goalShots.map(s => `
-        <div style="border-bottom:1px solid rgba(243,242,242,.35);padding-bottom:10px;">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;">
-            <span style="font-size:16px;font-weight:800;">${s.name}</span>
+  const usedCount = goalShots.filter(s => logFlow[s.id] && logFlow[s.id].used).length;
+  const statusLabel = goalShots.length === 0 ? '' : (usedCount === 0 ? 'Not logged' : (usedCount === goalShots.length ? 'Logged' : `${usedCount}/${goalShots.length} logged`));
+
+  let goalBand = `<div class="red-band" ${goalShots.length ? `data-action="nav-flow" data-shot="${goalShots[0].id}" style="cursor:pointer;"` : ''}>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+      <div class="kicker" style="color:rgba(243,242,242,.8);">Mastering now</div>
+      ${statusLabel ? `<div style="font-size:13px;color:rgba(243,242,242,.75);">${statusLabel}</div>` : ''}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;margin-top:12px;">
+      ${goalShots.map((s, i) => {
+        const sessions = entriesForShot(state, s.id).length;
+        const used = !!(logFlow[s.id] && logFlow[s.id].used);
+        return `<div data-action="nav-flow" data-shot="${s.id}" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px solid rgba(243,242,242,.35);opacity:${used || i === 0 ? 1 : 0.55};cursor:pointer;">
+          <div>
+            <div data-action="skill-info" data-shot="${s.id}" style="display:inline-flex;align-items:center;gap:8px;padding:6px 8px;margin:-6px 0 -6px -8px;cursor:pointer;">
+              <span style="font-size:20px;font-weight:800;">${s.name}</span>
+              ${infoDot(true)}
+            </div>
+            <div class="kicker" style="color:rgba(243,242,242,.75);margin-top:4px;">${sessions} of ${MASTERY_TARGET} sessions</div>
           </div>
-          ${ratingSquares(s.id, logForm[s.id] || 0)}
-        </div>`).join('')}
+          <div style="width:26px;height:26px;border:2px solid var(--cream);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            ${used ? '<span style="color:var(--cream);font-weight:800;font-size:16px;">✓</span>' : ''}
+          </div>
+        </div>`;
+      }).join('')}
       ${goalShots.length === 0 ? `<div style="font-size:13px;color:rgba(243,242,242,.85);">No goals picked yet — set your top 3 on the Goals tab.</div>` : ''}
     </div>
   </div>`;
+
+  const hasRest = otherGroups.some(g => state.shots.some(s => s.groupId === g.id && !s.isGoal));
 
   let rest = otherGroups.map(g => {
     const shots = state.shots.filter(s => s.groupId === g.id && !s.isGoal);
     if (!shots.length) return '';
     return `<div class="group-block">
       <div class="kicker" style="margin-bottom:8px;">${g.name}</div>
-      ${shots.map(s => `
-        <div class="shot-row" style="align-items:center;">
-          <span>${s.name}</span>
-          ${ratingSquares(s.id, logForm[s.id] || 0)}
-        </div>`).join('')}
+      ${shots.map(s => {
+        const entry = logFlow[s.id] || {};
+        const used = !!entry.used;
+        const noteOpen = expandedNoteShot === s.id;
+        const row = `<div class="shot-row" style="align-items:center;">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+            <div data-action="inline-toggle-used" data-shot="${s.id}" style="cursor:pointer;">${skillCheckbox(used)}</div>
+            <span data-action="skill-info" data-shot="${s.id}" style="display:inline-flex;align-items:center;gap:8px;padding:6px 8px;margin:-6px 0;cursor:pointer;">${s.name} ${infoDot(false)}</span>
+          </div>
+          ${feelSquares(s.id, entry.feel, used)}
+        </div>`;
+        const notePanel = noteOpen ? `<div style="padding:2px 0 16px;">
+          <div class="kicker" style="margin-bottom:8px;">Note</div>
+          <textarea id="inline-note-input" placeholder="What clicked / what didn't?" style="width:100%;min-height:70px;font-family:inherit;font-size:14px;border:2px solid var(--ink);padding:10px;background:var(--cream);margin-bottom:10px;">${entry.note || ''}</textarea>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" style="flex:1;" data-action="inline-note-save" data-shot="${s.id}">Save</button>
+            <button class="btn" style="flex:1;" data-action="inline-note-cancel" data-shot="${s.id}">Cancel</button>
+          </div>
+        </div>` : '';
+        return row + notePanel;
+      }).join('')}
     </div>`;
   }).join('');
+
+  const hasProgress = Object.values(logFlow).some(e => e.used || e.feel);
 
   return shell('log', `
     <div class="kicker">Session ${state.sessions.length + 1} · Open play</div>
     <h1 style="font-size:30px;margin:6px 0 18px;">${today}</h1>
     ${goalBand}
+    ${hasRest ? `<div style="display:flex;justify-content:space-between;align-items:baseline;margin:22px 0 10px;">
+      <div class="kicker">Rate tonight</div>
+      ${rateLegend()}
+    </div>` : ''}
     ${rest}
-    <div style="margin:18px 0;">
-      <div class="kicker" style="margin-bottom:8px;">Note</div>
-      <textarea id="log-note-input" placeholder="How'd it go tonight?" style="width:100%;min-height:70px;font-family:inherit;font-size:14px;border:2px solid var(--ink);padding:10px;background:var(--cream);">${logNote}</textarea>
-    </div>
-    <button class="btn btn-primary" style="width:100%;" data-action="save-session">Save session</button>
+    ${hasProgress ? `<div style="display:flex;gap:10px;margin-top:18px;">
+      <button class="btn btn-primary" style="flex:1;" data-action="finish-session">Save session</button>
+      <button class="btn" style="flex:1;" data-action="reset-session">Reset session</button>
+    </div>` : ''}
   `);
+}
+
+// ── LOG FLOW (per-goal-skill logging) ──────────────────────────
+const FLOW_TAGS = ['Soft hands', 'Tempo', 'Footwork', 'Paddle angle'];
+
+function renderLogFlow(shotId) {
+  const goalShots = state.shots.filter(s => s.isGoal);
+  const goalIdx = goalShots.findIndex(s => s.id === shotId);
+  const shot = goalShots[goalIdx];
+  if (!shot) { location.hash = '#/log'; return ''; }
+  const entry = logFlow[shot.id] || {};
+  const entries = entriesForShot(state, shot.id);
+  const made = entries.reduce((a, e) => a + (e.made || 0), 0);
+  const missed = entries.reduce((a, e) => a + (e.missed || 0), 0);
+  const sessionNum = state.sessions.length + 1;
+  const isLast = goalIdx === goalShots.length - 1;
+  const nextLabel = isLast ? 'Finish' : 'Next · ' + goalShots[goalIdx + 1].name;
+  const tags = entry.tags || [];
+
+  return `
+    <div style="padding-bottom:90px;">
+      <div class="red-band" style="margin:0;padding:20px 20px 22px;">
+        <div class="kicker" style="color:rgba(243,242,242,.8);">Skill ${goalIdx + 1} of ${goalShots.length} · Session ${sessionNum}</div>
+        <h1 style="color:var(--cream);font-size:32px;margin:8px 0 16px;">${shot.name}</h1>
+        <div data-action="flow-toggle-used" data-shot="${shot.id}" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+          <div style="width:22px;height:22px;border:2px solid var(--cream);display:flex;align-items:center;justify-content:center;background:${entry.used ? 'var(--cream)' : 'transparent'};flex-shrink:0;">
+            ${entry.used ? '<span style="color:var(--red);font-weight:800;">✓</span>' : ''}
+          </div>
+          <span style="font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;">Used it tonight</span>
+        </div>
+      </div>
+      <div style="padding:20px;">
+        <div class="kicker" style="margin-bottom:10px;">How did it feel?</div>
+        <div style="display:flex;gap:6px;margin-bottom:20px;">
+          ${[1, 2, 3, 4, 5].map(n => `<div data-action="flow-feel" data-shot="${shot.id}" data-n="${n}" style="flex:1;height:44px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;background:${entry.feel === n ? 'var(--ink)' : 'transparent'};color:${entry.feel === n ? 'var(--cream)' : 'var(--ink)'};">${n}</div>`).join('')}
+        </div>
+        <div style="display:flex;border:2px solid var(--ink);margin-bottom:20px;">
+          <div style="flex:1;padding:14px;border-right:1px solid rgba(32,30,29,.25);"><div class="kicker">Made</div><div style="font-size:32px;font-weight:800;">${made}</div></div>
+          <div style="flex:1;padding:14px;"><div class="kicker">Missed</div><div style="font-size:32px;font-weight:800;">${missed}</div></div>
+        </div>
+        <div class="kicker" style="margin-bottom:8px;">Note</div>
+        <textarea class="flow-note-input" data-shot="${shot.id}" placeholder="What clicked / what didn't?" style="width:100%;min-height:70px;font-family:inherit;font-size:14px;border:2px solid var(--ink);padding:10px;background:var(--cream);margin-bottom:14px;">${entry.note || ''}</textarea>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${FLOW_TAGS.map(t => `<div class="btn ${tags.includes(t) ? 'btn-primary' : ''}" style="font-size:11px;padding:8px 12px;" data-action="flow-tag-toggle" data-shot="${shot.id}" data-tag="${t}">${t}</div>`).join('')}
+          ${tags.filter(t => !FLOW_TAGS.includes(t)).map(t => `<div class="btn btn-primary" style="font-size:11px;padding:8px 12px;" data-action="flow-tag-toggle" data-shot="${shot.id}" data-tag="${t}">${t}</div>`).join('')}
+          <div class="btn" style="font-size:11px;padding:8px 12px;" data-action="flow-tag-add" data-shot="${shot.id}">+ Tag</div>
+        </div>
+      </div>
+    </div>
+    <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;border-top:2px solid var(--ink);background:var(--cream);">
+      <button class="btn btn-primary" style="flex:1;border:none;padding:18px;font-size:13px;" data-action="flow-next" data-shot="${shot.id}">${nextLabel}</button>
+      <button class="btn" style="border:none;border-left:2px solid var(--ink);padding:18px 22px;font-size:13px;" data-action="flow-skip" data-shot="${shot.id}">Skip</button>
+    </div>
+  `;
+}
+
+function finishFlow() {
+  const entries = state.shots
+    .filter(s => logFlow[s.id] && (logFlow[s.id].used || logFlow[s.id].feel))
+    .map(s => ({ shotId: s.id, rating: logFlow[s.id].feel || 0, note: logFlow[s.id].note || '', tags: logFlow[s.id].tags || [] }));
+  if (entries.length) addSession(state, entries, '');
+  logFlow = {};
+  location.hash = '#/log';
 }
 
 // ── PROGRESS ─────────────────────────────────────────────────
@@ -280,11 +419,12 @@ function renderGoals() {
       <div class="kicker" style="margin-bottom:8px;">${g.name}</div>
       ${shots.map(s => {
         const isSwapTarget = pendingSwap && s.isGoal;
-        return `<div class="shot-row" style="align-items:center;cursor:pointer;${isSwapTarget ? 'background:rgba(236,48,19,0.08);' : ''}" data-action="toggle-goal" data-shot="${s.id}">
-          <span>${s.name}</span>
-          <span style="font-size:18px;color:${s.isGoal ? 'var(--red)' : 'rgba(32,30,29,.3)'};">${s.isGoal ? '★' : '☆'}</span>
+        return `<div class="shot-row" style="align-items:center;${isSwapTarget ? 'background:rgba(236,48,19,0.08);' : ''}">
+          <span data-action="skill-info" data-shot="${s.id}" style="display:inline-flex;align-items:center;gap:8px;padding:6px 8px;margin:-6px 0 -6px -8px;cursor:pointer;">${s.name} ${infoDot(false)}</span>
+          <span style="font-size:18px;color:${s.isGoal ? 'var(--red)' : 'rgba(32,30,29,.3)'};cursor:pointer;padding:4px 0 4px 12px;" data-action="toggle-goal" data-shot="${s.id}">${s.isGoal ? '★' : '☆'}</span>
         </div>`;
       }).join('')}
+      <div style="padding:10px 0 2px;font-size:13px;font-weight:800;color:var(--red);cursor:pointer;" data-action="add-skill" data-group="${g.id}">+ Add skill</div>
     </div>`;
   }).join('');
 
@@ -297,6 +437,66 @@ function renderGoals() {
   `);
 }
 
+// ── SKILL DRAWER (view/edit/add) ────────────────────────────────
+function renderSkillDrawer() {
+  const groupOptions = (selectedGroupId) => state.groups.map(g => `<option value="${g.id}" ${g.id === selectedGroupId ? 'selected' : ''}>${g.name}</option>`).join('');
+
+  let inner;
+  if (skillDrawer.mode === 'add') {
+    inner = `
+      <div class="kicker" style="margin-bottom:14px;">Add skill</div>
+      <div class="kicker" style="margin-bottom:6px;">Name</div>
+      <input id="drawer-name-input" type="text" placeholder="Skill name" style="width:100%;font-family:inherit;font-size:16px;font-weight:800;border:2px solid var(--ink);padding:10px;background:var(--cream);margin-bottom:14px;">
+      <div class="kicker" style="margin-bottom:6px;">Group</div>
+      <select id="drawer-group-select" style="width:100%;font-family:inherit;font-size:14px;border:2px solid var(--ink);padding:10px;background:var(--cream);margin-bottom:14px;">${groupOptions(skillDrawer.groupId)}</select>
+      <div class="kicker" style="margin-bottom:6px;">Description</div>
+      <textarea id="drawer-desc-input" placeholder="What is this skill?" style="width:100%;min-height:80px;font-family:inherit;font-size:14px;border:2px solid var(--ink);padding:10px;background:var(--cream);margin-bottom:18px;"></textarea>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" style="flex:1;" data-action="drawer-save">Save</button>
+        <button class="btn" style="flex:1;" data-action="drawer-close">Cancel</button>
+      </div>`;
+  } else {
+    const s = state.shots.find(sh => sh.id === skillDrawer.shotId);
+    if (!s) { skillDrawer = null; return ''; }
+    const group = state.groups.find(g => g.id === s.groupId);
+    if (skillDrawer.mode === 'edit') {
+      inner = `
+        <div class="kicker" style="margin-bottom:14px;">Edit skill</div>
+        <div class="kicker" style="margin-bottom:6px;">Name</div>
+        <input id="drawer-name-input" type="text" value="${s.name}" style="width:100%;font-family:inherit;font-size:16px;font-weight:800;border:2px solid var(--ink);padding:10px;background:var(--cream);margin-bottom:14px;">
+        <div class="kicker" style="margin-bottom:6px;">Group</div>
+        <select id="drawer-group-select" style="width:100%;font-family:inherit;font-size:14px;border:2px solid var(--ink);padding:10px;background:var(--cream);margin-bottom:14px;">${groupOptions(s.groupId)}</select>
+        <div class="kicker" style="margin-bottom:6px;">Description</div>
+        <textarea id="drawer-desc-input" placeholder="What is this skill?" style="width:100%;min-height:80px;font-family:inherit;font-size:14px;border:2px solid var(--ink);padding:10px;background:var(--cream);margin-bottom:18px;">${s.description || ''}</textarea>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" style="flex:1;" data-action="drawer-save" data-shot="${s.id}">Save</button>
+          <button class="btn" style="flex:1;" data-action="drawer-close">Cancel</button>
+        </div>
+        <div style="margin-top:14px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep);cursor:pointer;" data-action="drawer-delete" data-shot="${s.id}">Delete skill</div>`;
+    } else {
+      inner = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+          <div class="kicker">${group ? group.name : ''}${s.isGoal ? ' · Mastering now' : ''}</div>
+        </div>
+        <h2 style="font-size:26px;margin:0 0 14px;">${s.name}</h2>
+        <div class="kicker" style="margin-bottom:6px;">Description</div>
+        <div style="font-size:14px;line-height:1.5;margin-bottom:22px;${s.description ? '' : 'color:rgba(32,30,29,.5);'}">${s.description || 'No description yet.'}</div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" style="flex:1;" data-action="drawer-edit">Edit</button>
+          <button class="btn" style="flex:1;" data-action="drawer-close">Close</button>
+        </div>
+        <div style="margin-top:14px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep);cursor:pointer;" data-action="drawer-delete" data-shot="${s.id}">Delete skill</div>`;
+    }
+  }
+
+  return `
+    <div data-action="drawer-close" style="position:fixed;inset:0;background:rgba(32,30,29,.5);z-index:20;"></div>
+    <div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;max-height:70vh;overflow-y:auto;background:var(--cream);border:2px solid var(--ink);border-bottom:none;padding:22px 20px 28px;z-index:21;">
+      ${inner}
+    </div>
+  `;
+}
+
 // ── Event delegation ──────────────────────────────────────────
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-action]');
@@ -305,11 +505,46 @@ document.addEventListener('click', (e) => {
 
   if (action === 'nav') { location.hash = '#/' + el.dataset.route; }
   else if (action === 'nav-skill') { location.hash = '#/skill/' + el.dataset.shot; }
-  else if (action === 'rate') { logForm[el.dataset.shot] = Number(el.dataset.n); render('log'); }
-  else if (action === 'save-session') {
-    const entries = Object.entries(logForm).filter(([, r]) => r > 0).map(([shotId, rating]) => ({ shotId, rating }));
-    if (entries.length) { addSession(state, entries, logNote); }
-    logForm = {}; logNote = '';
+  else if (action === 'reset-session') {
+    if (confirm("Reset tonight's session? This clears all progress you haven't saved yet.")) {
+      logFlow = {};
+      expandedNoteShot = null;
+      render('log');
+    }
+  }
+  else if (action === 'finish-session') { finishFlow(); }
+  else if (action === 'inline-toggle-used') {
+    const shotId = el.dataset.shot;
+    const entry = logFlow[shotId];
+    if (entry && entry.used) {
+      delete logFlow[shotId];
+      if (expandedNoteShot === shotId) expandedNoteShot = null;
+    } else {
+      logFlow[shotId] = { ...(entry || {}), used: true };
+    }
+    render('log');
+  }
+  else if (action === 'inline-feel') {
+    const shotId = el.dataset.shot;
+    const entry = logFlow[shotId] || {};
+    if (!entry.used) return;
+    entry.feel = Number(el.dataset.n);
+    logFlow[shotId] = entry;
+    expandedNoteShot = shotId;
+    render('log');
+  }
+  else if (action === 'inline-note-save') {
+    const shotId = el.dataset.shot;
+    const noteEl = document.getElementById('inline-note-input');
+    const entry = logFlow[shotId] || {};
+    entry.note = noteEl ? noteEl.value : (entry.note || '');
+    logFlow[shotId] = entry;
+    expandedNoteShot = null;
+    render('log');
+  }
+  else if (action === 'inline-note-cancel') {
+    delete logFlow[el.dataset.shot];
+    expandedNoteShot = null;
     render('log');
   }
   else if (action === 'toggle-goal') {
@@ -328,9 +563,90 @@ document.addEventListener('click', (e) => {
     render('goals');
   }
   else if (action === 'cancel-swap') { pendingSwap = null; render('goals'); }
+  else if (action === 'nav-flow') {
+    const shotId = el.dataset.shot;
+    logFlow[shotId] = { ...(logFlow[shotId] || {}), used: true };
+    location.hash = '#/log-flow/' + shotId;
+  }
+  else if (action === 'flow-toggle-used') {
+    const shotId = el.dataset.shot;
+    const entry = logFlow[shotId] || {};
+    entry.used = !entry.used;
+    logFlow[shotId] = entry;
+    route();
+  }
+  else if (action === 'flow-feel') {
+    const shotId = el.dataset.shot;
+    const entry = logFlow[shotId] || {};
+    entry.feel = Number(el.dataset.n);
+    entry.used = true;
+    logFlow[shotId] = entry;
+    route();
+  }
+  else if (action === 'flow-tag-toggle') {
+    const shotId = el.dataset.shot;
+    const tag = el.dataset.tag;
+    const entry = logFlow[shotId] || {};
+    entry.tags = entry.tags || [];
+    entry.tags = entry.tags.includes(tag) ? entry.tags.filter(t => t !== tag) : [...entry.tags, tag];
+    logFlow[shotId] = entry;
+    route();
+  }
+  else if (action === 'flow-tag-add') {
+    const shotId = el.dataset.shot;
+    const tag = (prompt('Add a tag') || '').trim();
+    if (tag) {
+      const entry = logFlow[shotId] || {};
+      entry.tags = entry.tags || [];
+      if (!entry.tags.includes(tag)) entry.tags.push(tag);
+      logFlow[shotId] = entry;
+      route();
+    }
+  }
+  else if (action === 'flow-next') {
+    const goalShots = state.shots.filter(s => s.isGoal);
+    const idx = goalShots.findIndex(s => s.id === el.dataset.shot);
+    if (idx < goalShots.length - 1) location.hash = '#/log-flow/' + goalShots[idx + 1].id;
+    else finishFlow();
+  }
+  else if (action === 'flow-skip') {
+    delete logFlow[el.dataset.shot];
+    const goalShots = state.shots.filter(s => s.isGoal);
+    const idx = goalShots.findIndex(s => s.id === el.dataset.shot);
+    if (idx < goalShots.length - 1) location.hash = '#/log-flow/' + goalShots[idx + 1].id;
+    else finishFlow();
+  }
+  else if (action === 'skill-info') { skillDrawer = { mode: 'view', shotId: el.dataset.shot }; route(); }
+  else if (action === 'add-skill') { skillDrawer = { mode: 'add', groupId: el.dataset.group }; route(); }
+  else if (action === 'drawer-close') { skillDrawer = null; route(); }
+  else if (action === 'drawer-edit') { skillDrawer.mode = 'edit'; route(); }
+  else if (action === 'drawer-save') {
+    const nameEl = document.getElementById('drawer-name-input');
+    const descEl = document.getElementById('drawer-desc-input');
+    const groupEl = document.getElementById('drawer-group-select');
+    const name = (nameEl.value || '').trim();
+    if (name) {
+      if (skillDrawer.mode === 'add') { addShot(state, groupEl.value, name, descEl.value); }
+      else { updateShot(state, skillDrawer.shotId, { name, description: descEl.value, groupId: groupEl.value }); }
+    }
+    skillDrawer = null;
+    route();
+  }
+  else if (action === 'drawer-delete') {
+    if (confirm('Delete this skill? This cannot be undone.')) {
+      deleteShot(state, el.dataset.shot);
+      skillDrawer = null;
+      route();
+    }
+  }
 });
 document.addEventListener('input', (e) => {
-  if (e.target.id === 'log-note-input') logNote = e.target.value;
+  if (e.target.classList.contains('flow-note-input')) {
+    const shotId = e.target.dataset.shot;
+    const entry = logFlow[shotId] || {};
+    entry.note = e.target.value;
+    logFlow[shotId] = entry;
+  }
 });
 
 route();
