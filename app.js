@@ -91,6 +91,23 @@ function entriesForShot(state, shotId) {
   state.sessions.forEach(s => s.entries.forEach(e => { if (e.shotId === shotId) out.push({ ...e, date: s.date }); }));
   return out;
 }
+function updateSessionEntry(state, sessionId, entryId, patch) {
+  const session = state.sessions.find(s => s.id === sessionId);
+  const entry = session && session.entries.find(e => e.id === entryId);
+  if (entry) Object.assign(entry, patch);
+  saveState(state);
+}
+function deleteSessionEntry(state, sessionId, entryId) {
+  const session = state.sessions.find(s => s.id === sessionId);
+  if (!session) return;
+  session.entries = session.entries.filter(e => e.id !== entryId);
+  if (!session.entries.length) state.sessions = state.sessions.filter(s => s.id !== sessionId);
+  saveState(state);
+}
+function deleteSession(state, sessionId) {
+  state.sessions = state.sessions.filter(s => s.id !== sessionId);
+  saveState(state);
+}
 function avgRating(entries) {
   if (!entries.length) return null;
   return Math.round((entries.reduce((a, e) => a + (e.rating || 0), 0) / entries.length) * 10) / 10;
@@ -120,6 +137,8 @@ let pendingSwap = null; // shotId awaiting a swap target
 let logFlow = loadLogFlow(); // shotId -> { used, feel, note, tags } — persisted so a reload can't silently wipe tonight's progress
 let skillDrawer = null; // { mode: 'view'|'edit'|'add', shotId, groupId }
 let expandedNoteShot = null; // shotId whose inline note editor is open on the Log page
+let editingEntry = null; // { sessionId, entryId } being edited on a session-detail screen
+let entryDraft = null; // { rating, tags } draft for the entry being edited
 
 function route() {
   const hash = location.hash || '#/log';
@@ -148,6 +167,8 @@ function render(view, param) {
   else if (view === 'progress') html = renderProgress();
   else if (view === 'goals') html = renderGoals();
   else if (view === 'log-flow') html = renderLogFlow(param);
+  else if (view === 'sessions') html = renderSessionsList();
+  else if (view === 'session') html = renderSessionDetail(param);
   else html = renderLog();
   if (skillDrawer && (view === 'log' || view === 'goals')) html += renderSkillDrawer();
   document.getElementById('root').innerHTML = html;
@@ -349,7 +370,7 @@ function renderProgress() {
     <div class="kicker">Progress</div>
     <h1 style="font-size:30px;margin:6px 0 18px;">Last ${sessAvgs.length} sessions</h1>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border:2px solid var(--ink);border-bottom:none;margin-bottom:18px;">
-      <div style="padding:12px;border-right:1px solid rgba(32,30,29,.25);"><div class="kicker">Sessions</div><div style="font-size:28px;font-weight:800;">${stats.sessions}</div></div>
+      <div style="padding:12px;border-right:1px solid rgba(32,30,29,.25);cursor:pointer;" data-action="nav" data-route="sessions"><div class="kicker">Sessions →</div><div style="font-size:28px;font-weight:800;">${stats.sessions}</div></div>
       <div style="padding:12px;border-right:1px solid rgba(32,30,29,.25);"><div class="kicker">Avg rating</div><div style="font-size:28px;font-weight:800;">${stats.avg ?? '—'}</div></div>
       <div style="padding:12px;"><div class="kicker">Solid+ ratings</div><div style="font-size:28px;font-weight:800;color:var(--red);">${stats.goalHits}<span style="font-size:14px;color:rgba(32,30,29,.5);">/${stats.goalPossible}</span></div></div>
     </div>
@@ -357,6 +378,97 @@ function renderProgress() {
     ${chart}
     <div class="kicker" style="margin:20px 0 6px;">By skill — tap for detail</div>
     ${table}
+  `);
+}
+
+// ── SESSIONS ─────────────────────────────────────────────────
+function renderSessionsList() {
+  const chronological = state.sessions;
+  const perDayCount = {};
+  const ordinalById = {};
+  chronological.forEach(sess => {
+    perDayCount[sess.date] = (perDayCount[sess.date] || 0) + 1;
+    ordinalById[sess.id] = perDayCount[sess.date];
+  });
+
+  const rows = chronological.slice().reverse().map(sess => {
+    const avg = avgRating(sess.entries);
+    const skillNames = sess.entries.map(e => {
+      const shot = state.shots.find(sh => sh.id === e.shotId);
+      return shot ? shot.name : 'Deleted skill';
+    });
+    const dateLabel = new Date(sess.date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+    const ordinal = perDayCount[sess.date] > 1 ? ` · Session ${ordinalById[sess.id]}` : '';
+    return `<div class="shot-row" data-action="nav-session" data-session="${sess.id}" style="cursor:pointer;flex-direction:column;align-items:flex-start;">
+      <div style="display:flex;justify-content:space-between;width:100%;align-items:baseline;">
+        <span style="font-weight:800;">${dateLabel}${ordinal}</span>
+        <span style="font-weight:800;">${avg ?? '—'}</span>
+      </div>
+      <div style="font-size:13px;color:rgba(32,30,29,.55);margin-top:4px;">${skillNames.join(', ')}</div>
+    </div>`;
+  }).join('') || `<div class="kicker" style="padding:10px 0;">No sessions logged yet.</div>`;
+
+  return shell('progress', `
+    <div class="kicker" data-action="nav" data-route="progress" style="cursor:pointer;">← Progress</div>
+    <h1 style="font-size:30px;margin:6px 0 18px;">Sessions</h1>
+    ${rows}
+  `);
+}
+
+function renderSessionDetail(sessionId) {
+  const session = state.sessions.find(s => s.id === sessionId);
+  if (!session) {
+    return shell('progress', `
+      <div class="kicker" data-action="nav" data-route="sessions" style="cursor:pointer;">← Sessions</div>
+      <div class="kicker" style="margin-top:20px;">Session not found.</div>
+    `);
+  }
+  const dateLabel = new Date(session.date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
+  const rows = session.entries.map(e => {
+    const shot = state.shots.find(sh => sh.id === e.shotId);
+    const shotName = shot ? shot.name : 'Deleted skill';
+    const isEditing = editingEntry && editingEntry.sessionId === session.id && editingEntry.entryId === e.id;
+
+    if (isEditing) {
+      const draft = entryDraft || { rating: e.rating, tags: e.tags || [] };
+      return `<div class="group-block">
+        <div class="kicker" style="margin-bottom:10px;">${shotName}</div>
+        <div style="display:flex;gap:6px;margin-bottom:14px;">
+          ${[1, 2, 3, 4, 5].map(n => `<div data-action="entry-edit-rate" data-n="${n}" style="flex:1;height:40px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer;background:${draft.rating === n ? 'var(--ink)' : 'transparent'};color:${draft.rating === n ? 'var(--cream)' : 'var(--ink)'};">${n}</div>`).join('')}
+        </div>
+        <textarea id="entry-edit-note-input" placeholder="What clicked / what didn't?" style="width:100%;min-height:60px;font-family:inherit;font-size:14px;border:2px solid var(--ink);padding:10px;background:var(--cream);margin-bottom:12px;">${e.note || ''}</textarea>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+          ${FLOW_TAGS.map(t => `<div class="btn ${draft.tags.includes(t) ? 'btn-primary' : ''}" style="font-size:11px;padding:8px 12px;" data-action="entry-edit-tag-toggle" data-tag="${t}">${t}</div>`).join('')}
+          ${draft.tags.filter(t => !FLOW_TAGS.includes(t)).map(t => `<div class="btn btn-primary" style="font-size:11px;padding:8px 12px;" data-action="entry-edit-tag-toggle" data-tag="${t}">${t}</div>`).join('')}
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-primary" style="flex:1;" data-action="entry-edit-save" data-session="${session.id}" data-entry="${e.id}">Save</button>
+          <button class="btn" style="flex:1;" data-action="entry-edit-cancel">Cancel</button>
+        </div>
+      </div>`;
+    }
+
+    const rateLabel = RATE_LABELS[e.rating - 1];
+    return `<div class="group-block">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;">
+        <span style="font-weight:800;font-size:16px;">${shotName}</span>
+        <span style="font-weight:800;">${e.rating}${rateLabel ? ' · ' + rateLabel[1] : ''}</span>
+      </div>
+      ${e.note ? `<div style="font-size:14px;color:rgba(32,30,29,.7);margin-top:6px;line-height:1.5;">${e.note}</div>` : ''}
+      ${e.tags && e.tags.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">${e.tags.map(t => `<span class="kicker" style="border:1px solid rgba(32,30,29,.3);padding:4px 8px;">${t}</span>`).join('')}</div>` : ''}
+      <div style="display:flex;gap:16px;margin-top:10px;">
+        <span class="kicker" style="cursor:pointer;color:var(--red);" data-action="entry-edit" data-session="${session.id}" data-entry="${e.id}">Edit</span>
+        <span class="kicker" style="cursor:pointer;color:var(--red-deep);" data-action="entry-delete" data-session="${session.id}" data-entry="${e.id}">Delete</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  return shell('progress', `
+    <div class="kicker" data-action="nav" data-route="sessions" style="cursor:pointer;">← Sessions</div>
+    <h1 style="font-size:30px;margin:6px 0 18px;">${dateLabel}</h1>
+    ${rows}
+    <div style="margin-top:20px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--red-deep);cursor:pointer;" data-action="session-delete" data-session="${session.id}">Delete entire session</div>
   `);
 }
 
@@ -495,6 +607,7 @@ document.addEventListener('click', (e) => {
 
   if (action === 'nav') { location.hash = '#/' + el.dataset.route; }
   else if (action === 'nav-skill') { location.hash = '#/skill/' + el.dataset.shot; }
+  else if (action === 'nav-session') { location.hash = '#/session/' + el.dataset.session; }
   else if (action === 'reset-session') {
     if (confirm("Reset tonight's session? This clears all progress you haven't saved yet.")) {
       logFlow = {};
@@ -627,6 +740,52 @@ document.addEventListener('click', (e) => {
       deleteShot(state, el.dataset.shot);
       skillDrawer = null;
       route();
+    }
+  }
+  else if (action === 'entry-edit') {
+    editingEntry = { sessionId: el.dataset.session, entryId: el.dataset.entry };
+    const session = state.sessions.find(s => s.id === editingEntry.sessionId);
+    const entry = session && session.entries.find(en => en.id === editingEntry.entryId);
+    entryDraft = { rating: entry.rating, tags: [...(entry.tags || [])] };
+    render('session', editingEntry.sessionId);
+  }
+  else if (action === 'entry-edit-rate') {
+    entryDraft.rating = Number(el.dataset.n);
+    render('session', editingEntry.sessionId);
+  }
+  else if (action === 'entry-edit-tag-toggle') {
+    const tag = el.dataset.tag;
+    entryDraft.tags = entryDraft.tags.includes(tag) ? entryDraft.tags.filter(t => t !== tag) : [...entryDraft.tags, tag];
+    render('session', editingEntry.sessionId);
+  }
+  else if (action === 'entry-edit-save') {
+    const noteEl = document.getElementById('entry-edit-note-input');
+    updateSessionEntry(state, el.dataset.session, el.dataset.entry, {
+      rating: entryDraft.rating,
+      tags: entryDraft.tags,
+      note: noteEl.value,
+    });
+    editingEntry = null;
+    entryDraft = null;
+    render('session', el.dataset.session);
+  }
+  else if (action === 'entry-edit-cancel') {
+    editingEntry = null;
+    entryDraft = null;
+    route();
+  }
+  else if (action === 'entry-delete') {
+    if (confirm('Delete this entry?')) {
+      const sessionId = el.dataset.session;
+      deleteSessionEntry(state, sessionId, el.dataset.entry);
+      const stillExists = state.sessions.some(s => s.id === sessionId);
+      if (stillExists) render('session', sessionId); else location.hash = '#/sessions';
+    }
+  }
+  else if (action === 'session-delete') {
+    if (confirm('Delete this entire session? This cannot be undone.')) {
+      deleteSession(state, el.dataset.session);
+      location.hash = '#/sessions';
     }
   }
   persistLogFlow();
